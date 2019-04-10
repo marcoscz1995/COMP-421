@@ -9,8 +9,10 @@ airports = LOAD '/data/airports.csv' USING PigStorage(',') AS (airport_id:INT, a
 moviesperyear = GROUP movies BY year;
 
 -- group airports by state
-moviesperyear = GROUP movies BY year;
+groupbyState = GROUP airports BY state;
 
+-- Read only the attributes we are interested in.
+airportcount = FOREACH groupbyState GENERATE group AS state:CHARARRAY, COUNT(airports) AS count:LONG;
 
 
 -- Read only the attributes we are interested in.
@@ -18,3 +20,6 @@ yearcount = FOREACH moviesperyear GENERATE group AS year:INT , COUNT(movies) AS 
 
 -- Order that by year.
 STORE (ORDER yearcount BY year ASC) INTO 'q1' USING PigStorage (',') ;
+
+-- Order that by state.
+STORE (ORDER airportcount BY state ASC) INTO 'q1' USING PigStorage (',') ;
