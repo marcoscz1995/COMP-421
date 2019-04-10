@@ -1,0 +1,18 @@
+(a)	
+	moviesgrouped: {
+    	group: chararray,
+    	movies1516genres: {
+        	(
+         	   movies1516::movieid: int,
+         	   movies1516::title: chararray,
+       		   movies1516::year: int,
+        	   moviegenres::movieid: int
+        	   moviegenres::genre: chararray
+       		)
+    	}
+	}
+
+	The schema is nested.
+
+
+(b)	Pig script completed in 45 seconds and 49 milliseconds (45049 ms)

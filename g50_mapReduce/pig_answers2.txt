@@ -1,0 +1,42 @@
+(i)
+	(a)	Job Stats (time in seconds):
+
+		JobId				Maps		Reduces		Feature	
+		job_1522192504000_0654		2		1		HASH_JOIN	
+		job_1522192504000_0655		1		1		DISTINCT	
+		job_1522192504000_0656		1		1		SAMPLER	
+		job_1522192504000_0657		1		1		ORDER_BY	
+
+	(b)	
+
+		movies2015Genres: {
+    		movies2015::movieid: int,
+    		movies2015::title: chararray,
+    		movies2015::year: int,
+    		desiredgenres::movieid: int,
+    		desiredgenres::genre: chararray
+		}
+
+
+	(c) Pig script completed in 1 minute, 27 seconds and 483 milliseconds (87483 ms)
+
+(ii)
+	(a)	Job Stats (time in seconds):
+		
+		JobId				Maps		Reduces		Feature
+		job_1522192504000_0663		2		4		HASH_JOIN	
+		job_1522192504000_0664		1		1		DISTINCT	
+		job_1522192504000_0665		1		1		SAMPLER	
+		job_1522192504000_0666		1		1		ORDER_BY
+
+	(b)	Pig script completed in 1 minute, 27 seconds and 29 milliseconds (87029 ms)
+
+	(c)	We expected a decrease in processing time, because of the increased paralellism. 
+		However, the actual difference in execution time was minimal (a few hundred ms). 
+		The parallelism might process the data faster, but a large amount of time is lost 
+		due to overhead. Splitting the data results in a lot more I/O and extra data being
+		created. Networking, parsing, and initilaization in the nodes will also take time,
+		leading to no speedup overall. 
+
+
+
