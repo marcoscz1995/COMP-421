@@ -6,7 +6,7 @@ flights = LOAD '/data/flights.csv' USING PigStorage(',') AS (day:INT, flight_num
 flightdelay600 = FILTER flights BY delay > 600;
 
 --join
-flightdelay600carriercodes = JOIN flightdelay600 BY tail_number, airplanes BY tail_number;
+flightdelay600carriercodes = JOIN flightdelay600 BY tail_number, airplanes BY tail_number PARALLEL 4;
 
 --project
 flightcarriercodes = FOREACH flightdelay600carriercodes GENERATE carrier_code AS carrier_code:CHARARRAY;
