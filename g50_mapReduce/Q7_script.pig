@@ -1,23 +1,95 @@
-movies = LOAD '/data/movies.csv' USING PigStorage(',') AS (movieid:INT, title:CHARARRAY, year:INT); 
-ratings = LOAD '/data/ratings.csv' USING PigStorage(',') AS (userid:INT, movieid:INT, rating:DOUBLE, TIMESTAMP);
-moviegenres = LOAD '/data/moviegenres.csv' USING PigStorage(',') AS (movieid:INT, genre:CHARARRAY);
+airports = LOAD '/data/airports.csv' USING PigStorage(',') AS (airport_id:INT, airport_code:CHARARRAY, city_name:CHARARRAY, state:CHARARRAY);
+airplanes = LOAD '/data/airplanes.csv' USING PigStorage(',') AS (carrier_code:CHARARRAY, carrier_name:CHARARRAY, tail_number:CHARARRAY);
+flights = LOAD '/data/flights.csv' USING PigStorage(',') AS (day:INT, flight_number:CHARARRAY, tail_number:CHARARRAY, origin_airport_id:INT, dest_airport_id:INT, delay:INT, distance:INT);
 
-movies2016 = FILTER movies BY year == 2016;
+--filter
+delta = FILTER airplanes BY carrier_code == 'DL';
+jfklaxids = FILTER airports BY (airport_code == 'JFK') OR (airport_code == 'LAX');
 
-genrejoin = JOIN movies2016 BY movieid, moviegenres BY movieid;
+--join
 
-ratingsjoin = JOIN movies2016 BY movieid, ratings BY movieid;
+--get the flights under delta airlines
+deltajoin1 = JOIN delta BY tail_number, flights BY tail_number;
+--clean up
+deltajoin = foreach deltajoin1 generate delta::tail_number as tail_number:chararray, flights::origin_airport_id as origin_airport_id:int ,flights::dest_airport_id as dest_airport_id:int, flights::distance as distance:int;
 
-genrecount = GROUP genrejoin BY movies2016::movieid;
+--get the delta airline flights that originate in either jkf or lax
+jfklaxjoinOrigin1 = JOIN jfklaxids BY airport_id, deltajoin BY origin_airport_id; 
 
-ratingscount = GROUP ratingsjoin BY movies2016::movieid;
+--clean
+jfklaxjoinOrigin = foreach jfklaxjoinOrigin1 generate deltajoin::tail_number as tail_number:chararray,
+	deltajoin::distance as distance:int,  deltajoin::origin_airport_id as origin_airport_id:int,
+	deltajoin::dest_airport_id as dest_airport_id:int;
 
-moviesandcounts = JOIN genrecount BY group, ratingscount BY group;
+--get the delta airline flights that arrive in either jkf or lax
+jfklaxjoinDest1 = JOIN jfklaxids BY airport_id, deltajoin BY dest_airport_id; 
 
-moviestatsintermediate = FOREACH moviesandcounts GENERATE genrecount::group AS movieid:INT , COUNT(ratingsjoin) AS ratingCount:LONG , COUNT(genrejoin) AS genreCount:LONG;
+--clean
+jfklaxjoinDest = foreach jfklaxjoinDest1 generate deltajoin::tail_number as tail_number:chararray,
+	deltajoin::distance as distance:int,  deltajoin::origin_airport_id as origin_airport_id:int,
+	deltajoin::dest_airport_id as dest_airport_id:int;
 
-moviestats = JOIN moviestatsintermediate BY movieid, movies2016 BY movieid;
 
-movieattributecounts = FOREACH moviestats GENERATE moviestatsintermediate::movieid AS movieid:INT , title AS title:CHARARRAY , genreCount AS genreCount:LONG, ratingCount AS ratingCount:LONG;
+--find the flights that commute only between jkf and lax.... I removed the left outer??
+jfklax = JOIN jfklaxjoinOrigin BY (origin_airport_id, dest_airport_id) LEFT OUTER, jfklaxjoinDest BY (origin_airport_id, dest_airport_id); 
 
-STORE movieattributecounts INTO 'q7' USING PigStorage (',') ; 
+jfklax10 = limit jfklax 10;
+dump jfklax10;
+
+
+--the first four fields have values, the rest dont. why?
+
+ori = FOREACH jfklax GENERATE jfklaxjoinOrigin::tail_number as tail_number:chararray, jfklaxjoinOrigin::distance as or_distance:int, 
+	jfklaxjoinOrigin::origin_airport_id ,
+	jfklaxjoinOrigin::dest_airport_id;
+dest = FOREACH jfklax GENERATE jfklaxjoinDest::tail_number as tail_number:chararray, 
+	jfklaxjoinDest::distance as dest_distance:int, 
+	jfklaxjoinDest::origin_airport_id ,
+	jfklaxjoinDest::dest_airport_id;
+
+ori_group = GROUP ori BY tail_number;
+dest_group = GROUP dest BY tail_number;
+
+flight_dist = JOIN ori_group BY group, dest_group BY group;
+
+
+
+ori10 = limit ori 10;
+dest10 = limit dest 10;
+
+dump ori10;
+dump dest10; why is this empty?
+
+
+--cut the fat ie project now to save on time
+skinny = FOREACH jfklax GENERATE jfklaxjoinOrigin::tail_number as tail_number:chararray, jfklaxjoinOrigin::distance as or_distance:int, 
+	jfklaxjoinDest::distance as des_distance:int;
+
+--combing origin and destination distances
+adds = FOREACH skinny GENERATE tail_number, (or_distance + des_distance) as distance;
+
+--group and sum
+jfklax_group = GROUP jfklax BY tail_number;
+airplane_dist = FOREACH jfklax_group GENERATE group AS tail_number, SUM(distance) AS totoaldistance:INT;
+
+--order by totoaldistance and then tail number, limit to 10
+airplane_dist_ordered = ORDER airplane_dist BY totoaldistance DESC, tail_number DESC;
+limit_data = LIMIT airplane_dist_ordered 10;
+
+--project only tail number and distance
+airplaneDist = FOREACH limit_data GENERATE group as tail_number:CHARARRAY, totoaldistance AS totoaldistance:INT;
+
+
+--dump the results
+dump airplaneDist;
+
+--store the data
+STORE airplaneDist INTO 'q7' USING PigStorage (',') ; 
+
+
+
+
+
+
+
+
