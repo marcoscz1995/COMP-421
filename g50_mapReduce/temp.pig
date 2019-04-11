@@ -9,15 +9,15 @@ jfklax_orig = FILTER flights BY (origin_airport_id == 12892) OR (origin_airport_
 jfklax_both = FILTER jfklax_orig BY (dest_airport_id == 12892) OR (dest_airport_id == 12478);
 
 --join
---ge the delta fights that coommute between jfk and lax that are delta
+--get the delta fights that coommute between jfk and lax that are delta
 deltajoin = JOIN delta BY tail_number, jfklax_both BY tail_number;
 
 --project
 jfklax = FOREACH deltajoin GENERATE delta::tail_number AS tail_number:CHARARRAY, jfklax_both::distance AS distance:INT;
 
 --group and sum
-jfklax_group = GROUP deltajoin BY tail_number;
-airplane_dist = FOREACH jfklax_group GENERATE group AS tail_number, SUM(distance) AS totoaldistance:INT;
+jfklax_group = GROUP jfklax BY tail_number;
+airplane_dist = FOREACH jfklax_group GENERATE SUM(jfklax.distance) AS totoaldistance:INT, jfklax.tail_number;
 
 
 
