@@ -9,33 +9,8 @@ jfklax_orig = FILTER flights BY (origin_airport_id == 12892) OR (origin_airport_
 jfklax_both = FILTER jfklax_orig BY (dest_airport_id == 12892) OR (dest_airport_id == 12478);
 
 --join
+--ge the delta lfights that coommute between jfk and lax that are delta
 deltajoin = JOIN delta BY tail_number, jfklax_both BY tail_number;
-
-
---get the flights under delta airlines
-deltajoin1 = JOIN delta BY tail_number, flights BY tail_number;
---clean up
-deltajoin = foreach deltajoin1 generate delta::tail_number as tail_number:chararray, flights::origin_airport_id as origin_airport_id:int ,flights::dest_airport_id as dest_airport_id:int, flights::distance as distance:int;
-
---get the delta airline flights that originate in either jkf or lax
-jfklaxjoinOrigin1 = JOIN jfklaxids BY airport_id, deltajoin BY origin_airport_id; 
-
---clean
-jfklaxjoinOrigin = foreach jfklaxjoinOrigin1 generate deltajoin::tail_number as tail_number:chararray,
-	deltajoin::distance as distance:int,  deltajoin::origin_airport_id as origin_airport_id:int,
-	deltajoin::dest_airport_id as dest_airport_id:int;
-
---get the delta airline flights that arrive in either jkf or lax
-jfklaxjoinDest1 = JOIN jfklaxids BY airport_id, deltajoin BY dest_airport_id; 
-
---clean
-jfklaxjoinDest = foreach jfklaxjoinDest1 generate deltajoin::tail_number as tail_number:chararray,
-	deltajoin::distance as distance:int,  deltajoin::origin_airport_id as origin_airport_id:int,
-	deltajoin::dest_airport_id as dest_airport_id:int;
-
-
---find the flights that commute only between jkf and lax for a given tail_number.... I removed the left outer??
-jfklax = JOIN jfklaxjoinOrigin BY (tail_number, origin_airport_id, dest_airport_id) LEFT OUTER, jfklaxjoinDest BY (tail_number, origin_airport_id, dest_airport_id); 
 
 jfklax10 = limit jfklax 10;
 dump jfklax10;
