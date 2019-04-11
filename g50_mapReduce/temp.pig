@@ -9,14 +9,20 @@ jfklax_orig = FILTER flights BY (origin_airport_id == 12892) OR (origin_airport_
 jfklax_both = FILTER jfklax_orig BY (dest_airport_id == 12892) OR (dest_airport_id == 12478);
 
 --join
---ge the delta lfights that coommute between jfk and lax that are delta
+--ge the delta fights that coommute between jfk and lax that are delta
 deltajoin = JOIN delta BY tail_number, jfklax_both BY tail_number;
 
-jfklax10 = limit jfklax 10;
-dump jfklax10;
+--project
+jfklax = FOREACH deltajoin GENERATE delta::tail_number AS tail_number:CHARARRAY, jfklax_both::distance AS distance:INT;
+
+--group and sum
+jfklax_group = GROUP deltajoin BY tail_number;
+airplane_dist = FOREACH jfklax_group GENERATE group AS tail_number, SUM(distance) AS totoaldistance:INT;
 
 
---the first four fields have values, the rest dont. why?
+
+
+
 
 ori = FOREACH jfklax GENERATE jfklaxjoinOrigin::tail_number as tail_number:chararray, jfklaxjoinOrigin::distance as or_distance:int, 
 	jfklaxjoinOrigin::origin_airport_id ,
