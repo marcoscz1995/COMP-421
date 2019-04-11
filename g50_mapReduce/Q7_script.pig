@@ -1,22 +1,6 @@
-movies = LOAD '/data/movies.csv' USING PigStorage(',') AS (movieid:INT, title:CHARARRAY, year:INT); 
-ratings = LOAD '/data/ratings.csv' USING PigStorage(',') AS (userid:INT, movieid:INT, rating:DOUBLE, TIMESTAMP);
-moviegenres = LOAD '/data/moviegenres.csv' USING PigStorage(',') AS (movieid:INT, genre:CHARARRAY);
-
 airports = LOAD '/data/airports.csv' USING PigStorage(',') AS (airport_id:INT, airport_code:CHARARRAY, city_name:CHARARRAY, state:CHARARRAY);
 airplanes = LOAD '/data/airplanes.csv' USING PigStorage(',') AS (carrier_code:CHARARRAY, carrier_name:CHARARRAY, tail_number:CHARARRAY);
 flights = LOAD '/data/flights.csv' USING PigStorage(',') AS (day:INT, flight_number:CHARARRAY, tail_number:CHARARRAY, origin_airport_id:INT, dest_airport_id:INT, delay:INT, distance:INT);
-
-movies2016 = FILTER movies BY year == 2016;
-genrejoin = JOIN movies2016 BY movieid, moviegenres BY movieid;
-ratingsjoin = JOIN movies2016 BY movieid, ratings BY movieid;
-
-genrecount = GROUP genrejoin BY movies2016::movieid;
-ratingscount = GROUP ratingsjoin BY movies2016::movieid;
-moviesandcounts = JOIN genrecount BY group, ratingscount BY group;
-moviestatsintermediate = FOREACH moviesandcounts GENERATE genrecount::group AS movieid:INT , COUNT(ratingsjoin) AS ratingCount:LONG , COUNT(genrejoin) AS genreCount:LONG;
-moviestats = JOIN moviestatsintermediate BY movieid, movies2016 BY movieid;
-movieattributecounts = FOREACH moviestats GENERATE moviestatsintermediate::movieid AS movieid:INT , title AS title:CHARARRAY , genreCount AS genreCount:LONG, ratingCount AS ratingCount:LONG;
-STORE movieattributecounts INTO 'q7' USING PigStorage (',') ; 
 
 --filter
 delta = FILTER airplanes BY carrier_code == DL;
@@ -53,9 +37,6 @@ dump airplaneDist;
 --store the data
 STORE airplaneDist INTO 'q7' USING PigStorage (',') ; 
 
---explain
-
-EXPLAIN airplaneDist;
 
 
 
