@@ -1,0 +1,53 @@
+(i)
+
+(a)
+
+Job Stats (time in seconds):
+JobId	               Maps	Reduces	Feature	
+job_1553263918531_9696	2	1	HASH_JOIN	
+job_1553263918531_9698	1	1	DISTINCT	
+job_1553263918531_9701	1	1	SAMPLER	
+job_1553263918531_9705	1	1	ORDER_BY
+
+
+(b)
+flightdelay600carriercodes: {
+    flightdelay600::day: int,
+    flightdelay600::flight_number: chararray,
+    flightdelay600::tail_number: chararray,
+    flightdelay600::origin_airport_id: int,
+    flightdelay600::dest_airport_id: int,
+    flightdelay600::delay: int,
+    flightdelay600::distance: int,
+    airplanes::carrier_code: chararray,
+    airplanes::carrier_name: chararray,
+    airplanes::tail_number: chararray
+}
+
+
+
+(c) Pig script completed in 1 minute, 52 seconds and 36 milliseconds (112036 ms)
+ 
+
+(ii)
+(a)	
+Job Stats (time in seconds):
+JobId			Maps	Reduces	Feature
+job_1553263918531_9815	2	4	HASH_JOIN	
+job_1553263918531_9819	1	1	DISTINCT	
+job_1553263918531_9821	1	1	SAMPLER	
+job_1553263918531_9824	1	1	ORDER_BY
+
+
+
+(b)	Pig script completed in 1 minute, 59 seconds and 70 milliseconds (119070 ms)
+
+(c)	We expected a decrease in processing time, because of the increased paralellism. 
+	However, the actual time increased by some seconds. 
+	The parallelism might process the data faster, but a large amount of time is lost 
+	due to overhead. Splitting the data results in a lot more I/O and extra data being
+	created. Networking, parsing, and initilaization in the nodes will also take time,
+	leading to no speedup overall. 
+
+
+

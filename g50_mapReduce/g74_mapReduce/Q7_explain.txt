@@ -1,0 +1,544 @@
+#-----------------------------------------------
+limit_data: (Name: LOStore Schema: tail_number#2643:chararray,totoaldistance#2707:int)ColumnPrune:InputUids=[2643, 2707]ColumnPrune:OutputUids=[2643, 2707]
+|
+|---airplane_dist_ordered: (Name: LOSort Schema: tail_number#2643:chararray,totoaldistance#2707:int)ColumnPrune:InputUids=[2643, 2707]ColumnPrune:OutputUids=[2643, 2707]
+    |   |
+    |   totoaldistance:(Name: Project Type: int Uid: 2707 Input: 0 Column: 1)
+    |   |
+    |   tail_number:(Name: Project Type: chararray Uid: 2643 Input: 0 Column: 0)
+    |
+    |---airplane_dist: (Name: LOForEach Schema: tail_number#2643:chararray,totoaldistance#2707:int)ColumnPrune:InputUids=[2703, 2643]ColumnPrune:OutputUids=[2643, 2707]
+        |   |
+        |   (Name: LOGenerate[false,false] Schema: tail_number#2643:chararray,totoaldistance#2707:int)ColumnPrune:InputUids=[2703, 2643]ColumnPrune:OutputUids=[2643, 2707]
+        |   |   |
+        |   |   group:(Name: Project Type: chararray Uid: 2643 Input: 0 Column: (*))
+        |   |   |
+        |   |   (Name: UserFunc(org.apache.pig.builtin.LongSum) Type: long Uid: 2707)
+        |   |   |
+        |   |   |---(Name: Dereference Type: bag Uid: 2706 Column:[1])
+        |   |       |
+        |   |       |---jfklax:(Name: Project Type: bag Uid: 2703 Input: 1 Column: (*))
+        |   |
+        |   |---(Name: LOInnerLoad[0] Schema: group#2643:chararray)
+        |   |
+        |   |---jfklax: (Name: LOInnerLoad[1] Schema: tail_number#2643:chararray,distance#2661:int)
+        |
+        |---jfklax_group: (Name: LOCogroup Schema: group#2643:chararray,jfklax#2703:bag{#2734:tuple(tail_number#2643:chararray,distance#2661:int)})ColumnPrune:InputUids=[2643, 2661]ColumnPrune:OutputUids=[2643, 2703]
+            |   |
+            |   tail_number:(Name: Project Type: chararray Uid: 2643 Input: 0 Column: 0)
+            |
+            |---jfklax: (Name: LOForEach Schema: tail_number#2643:chararray,distance#2661:int)ColumnPrune:InputUids=[2643, 2661]ColumnPrune:OutputUids=[2643, 2661]
+                |   |
+                |   (Name: LOGenerate[false,false] Schema: tail_number#2643:chararray,distance#2661:int)ColumnPrune:InputUids=[2643, 2661]ColumnPrune:OutputUids=[2643, 2661]
+                |   |   |
+                |   |   delta::tail_number:(Name: Project Type: chararray Uid: 2643 Input: 0 Column: (*))
+                |   |   |
+                |   |   jfklax_orig::distance:(Name: Project Type: int Uid: 2661 Input: 1 Column: (*))
+                |   |
+                |   |---(Name: LOInnerLoad[0] Schema: delta::tail_number#2643:chararray)
+                |   |
+                |   |---(Name: LOInnerLoad[2] Schema: jfklax_orig::distance#2661:int)
+                |
+                |---deltajoin: (Name: LOJoin(HASH) Schema: delta::tail_number#2643:chararray,jfklax_orig::tail_number#2657:chararray,jfklax_orig::distance#2661:int)ColumnPrune:InputUids=[2643, 2657, 2661]ColumnPrune:OutputUids=[2643, 2661]
+                    |   |
+                    |   tail_number:(Name: Project Type: chararray Uid: 2643 Input: 0 Column: 0)
+                    |   |
+                    |   tail_number:(Name: Project Type: chararray Uid: 2657 Input: 1 Column: 0)
+                    |
+                    |---delta: (Name: LOForEach Schema: tail_number#2643:chararray)
+                    |   |   |
+                    |   |   (Name: LOGenerate[false] Schema: tail_number#2643:chararray)
+                    |   |   |   |
+                    |   |   |   tail_number:(Name: Project Type: chararray Uid: 2643 Input: 0 Column: (*))
+                    |   |   |
+                    |   |   |---(Name: LOInnerLoad[1] Schema: tail_number#2643:chararray)
+                    |   |
+                    |   |---delta: (Name: LOFilter Schema: carrier_code#2641:chararray,tail_number#2643:chararray)ColumnPrune:InputUids=[2641, 2643]ColumnPrune:OutputUids=[2643]
+                    |       |   |
+                    |       |   (Name: Equal Type: boolean Uid: 2692)
+                    |       |   |
+                    |       |   |---carrier_code:(Name: Project Type: chararray Uid: 2641 Input: 0 Column: 0)
+                    |       |   |
+                    |       |   |---(Name: Constant Type: chararray Uid: 2691)
+                    |       |
+                    |       |---airplanes: (Name: LOForEach Schema: carrier_code#2641:chararray,tail_number#2643:chararray)ColumnPrune:InputUids=[2641, 2643]ColumnPrune:OutputUids=[2641, 2643]
+                    |           |   |
+                    |           |   (Name: LOGenerate[false,false] Schema: carrier_code#2641:chararray,tail_number#2643:chararray)ColumnPrune:InputUids=[2641, 2643]ColumnPrune:OutputUids=[2641, 2643]
+                    |           |   |   |
+                    |           |   |   (Name: Cast Type: chararray Uid: 2641)
+                    |           |   |   |
+                    |           |   |   |---carrier_code:(Name: Project Type: bytearray Uid: 2641 Input: 0 Column: (*))
+                    |           |   |   |
+                    |           |   |   (Name: Cast Type: chararray Uid: 2643)
+                    |           |   |   |
+                    |           |   |   |---tail_number:(Name: Project Type: bytearray Uid: 2643 Input: 1 Column: (*))
+                    |           |   |
+                    |           |   |---(Name: LOInnerLoad[0] Schema: carrier_code#2641:bytearray)
+                    |           |   |
+                    |           |   |---(Name: LOInnerLoad[1] Schema: tail_number#2643:bytearray)
+                    |           |
+                    |           |---airplanes: (Name: LOLoad Schema: carrier_code#2641:bytearray,tail_number#2643:bytearray)ColumnPrune:RequiredColumns=[0, 2]ColumnPrune:InputUids=[2641, 2643]ColumnPrune:OutputUids=[2641, 2643]RequiredFields:[0, 2]
+                    |
+                    |---jfklax_orig: (Name: LOForEach Schema: tail_number#2657:chararray,distance#2661:int)
+                        |   |
+                        |   (Name: LOGenerate[false,false] Schema: tail_number#2657:chararray,distance#2661:int)
+                        |   |   |
+                        |   |   tail_number:(Name: Project Type: chararray Uid: 2657 Input: 0 Column: (*))
+                        |   |   |
+                        |   |   distance:(Name: Project Type: int Uid: 2661 Input: 1 Column: (*))
+                        |   |
+                        |   |---(Name: LOInnerLoad[0] Schema: tail_number#2657:chararray)
+                        |   |
+                        |   |---(Name: LOInnerLoad[3] Schema: distance#2661:int)
+                        |
+                        |---jfklax_orig: (Name: LOFilter Schema: tail_number#2657:chararray,origin_airport_id#2658:int,dest_airport_id#2659:int,distance#2661:int)ColumnPrune:InputUids=[2658, 2659, 2657, 2661]ColumnPrune:OutputUids=[2657, 2661]
+                            |   |
+                            |   (Name: And Type: boolean Uid: 2724)
+                            |   |
+                            |   |---(Name: Or Type: boolean Uid: 2697)
+                            |   |   |
+                            |   |   |---(Name: Equal Type: boolean Uid: 2694)
+                            |   |   |   |
+                            |   |   |   |---origin_airport_id:(Name: Project Type: int Uid: 2658 Input: 0 Column: 1)
+                            |   |   |   |
+                            |   |   |   |---(Name: Constant Type: int Uid: 2693)
+                            |   |   |
+                            |   |   |---(Name: Equal Type: boolean Uid: 2696)
+                            |   |       |
+                            |   |       |---origin_airport_id:(Name: Project Type: int Uid: 2658 Input: 0 Column: 1)
+                            |   |       |
+                            |   |       |---(Name: Constant Type: int Uid: 2695)
+                            |   |
+                            |   |---(Name: Or Type: boolean Uid: 2702)
+                            |       |
+                            |       |---(Name: Equal Type: boolean Uid: 2699)
+                            |       |   |
+                            |       |   |---dest_airport_id:(Name: Project Type: int Uid: 2659 Input: 0 Column: 2)
+                            |       |   |
+                            |       |   |---(Name: Constant Type: int Uid: 2698)
+                            |       |
+                            |       |---(Name: Equal Type: boolean Uid: 2701)
+                            |           |
+                            |           |---dest_airport_id:(Name: Project Type: int Uid: 2659 Input: 0 Column: 2)
+                            |           |
+                            |           |---(Name: Constant Type: int Uid: 2700)
+                            |
+                            |---flights: (Name: LOForEach Schema: tail_number#2657:chararray,origin_airport_id#2658:int,dest_airport_id#2659:int,distance#2661:int)ColumnPrune:InputUids=[2658, 2659, 2657, 2661]ColumnPrune:OutputUids=[2658, 2659, 2657, 2661]
+                                |   |
+                                |   (Name: LOGenerate[false,false,false,false] Schema: tail_number#2657:chararray,origin_airport_id#2658:int,dest_airport_id#2659:int,distance#2661:int)ColumnPrune:InputUids=[2658, 2659, 2657, 2661]ColumnPrune:OutputUids=[2658, 2659, 2657, 2661]
+                                |   |   |
+                                |   |   (Name: Cast Type: chararray Uid: 2657)
+                                |   |   |
+                                |   |   |---tail_number:(Name: Project Type: bytearray Uid: 2657 Input: 0 Column: (*))
+                                |   |   |
+                                |   |   (Name: Cast Type: int Uid: 2658)
+                                |   |   |
+                                |   |   |---origin_airport_id:(Name: Project Type: bytearray Uid: 2658 Input: 1 Column: (*))
+                                |   |   |
+                                |   |   (Name: Cast Type: int Uid: 2659)
+                                |   |   |
+                                |   |   |---dest_airport_id:(Name: Project Type: bytearray Uid: 2659 Input: 2 Column: (*))
+                                |   |   |
+                                |   |   (Name: Cast Type: int Uid: 2661)
+                                |   |   |
+                                |   |   |---distance:(Name: Project Type: bytearray Uid: 2661 Input: 3 Column: (*))
+                                |   |
+                                |   |---(Name: LOInnerLoad[0] Schema: tail_number#2657:bytearray)
+                                |   |
+                                |   |---(Name: LOInnerLoad[1] Schema: origin_airport_id#2658:bytearray)
+                                |   |
+                                |   |---(Name: LOInnerLoad[2] Schema: dest_airport_id#2659:bytearray)
+                                |   |
+                                |   |---(Name: LOInnerLoad[3] Schema: distance#2661:bytearray)
+                                |
+                                |---flights: (Name: LOLoad Schema: tail_number#2657:bytearray,origin_airport_id#2658:bytearray,dest_airport_id#2659:bytearray,distance#2661:bytearray)ColumnPrune:RequiredColumns=[2, 3, 4, 6]ColumnPrune:InputUids=[2658, 2659, 2657, 2661]ColumnPrune:OutputUids=[2658, 2659, 2657, 2661]RequiredFields:[2, 3, 4, 6]
+#-----------------------------------------------
+# Physical Plan:
+#-----------------------------------------------
+limit_data: Store(fakefile:org.apache.pig.builtin.PigStorage) - scope-712
+|
+|---airplane_dist_ordered: POSort[bag]() - scope-711
+    |   |
+    |   Project[int][1] - scope-709
+    |   |
+    |   Project[chararray][0] - scope-710
+    |
+    |---airplane_dist: New For Each(false,false)[bag] - scope-708
+        |   |
+        |   Project[chararray][0] - scope-702
+        |   |
+        |   POUserFunc(org.apache.pig.builtin.LongSum)[long] - scope-706
+        |   |
+        |   |---Project[bag][1] - scope-705
+        |       |
+        |       |---Project[bag][1] - scope-704
+        |
+        |---jfklax_group: Package(Packager)[tuple]{chararray} - scope-699
+            |
+            |---jfklax_group: Global Rearrange[tuple] - scope-698
+                |
+                |---jfklax_group: Local Rearrange[tuple]{chararray}(false) - scope-700
+                    |   |
+                    |   Project[chararray][0] - scope-701
+                    |
+                    |---jfklax: New For Each(false,false)[bag] - scope-697
+                        |   |
+                        |   Project[chararray][0] - scope-693
+                        |   |
+                        |   Project[int][2] - scope-695
+                        |
+                        |---deltajoin: New For Each(true,true)[tuple] - scope-692
+                            |   |
+                            |   Project[bag][1] - scope-690
+                            |   |
+                            |   Project[bag][2] - scope-691
+                            |
+                            |---deltajoin: Package(Packager)[tuple]{chararray} - scope-685
+                                |
+                                |---deltajoin: Global Rearrange[tuple] - scope-684
+                                    |
+                                    |---deltajoin: Local Rearrange[tuple]{chararray}(false) - scope-686
+                                    |   |   |
+                                    |   |   Project[chararray][0] - scope-687
+                                    |   |
+                                    |   |---delta: New For Each(false)[bag] - scope-646
+                                    |       |   |
+                                    |       |   Project[chararray][1] - scope-644
+                                    |       |
+                                    |       |---delta: Filter[bag] - scope-640
+                                    |           |   |
+                                    |           |   Equal To[boolean] - scope-643
+                                    |           |   |
+                                    |           |   |---Project[chararray][0] - scope-641
+                                    |           |   |
+                                    |           |   |---Constant(DL) - scope-642
+                                    |           |
+                                    |           |---airplanes: New For Each(false,false)[bag] - scope-639
+                                    |               |   |
+                                    |               |   Cast[chararray] - scope-634
+                                    |               |   |
+                                    |               |   |---Project[bytearray][0] - scope-633
+                                    |               |   |
+                                    |               |   Cast[chararray] - scope-637
+                                    |               |   |
+                                    |               |   |---Project[bytearray][1] - scope-636
+                                    |               |
+                                    |               |---airplanes: Load(/data/airplanes.csv:PigStorage(',')) - scope-632
+                                    |
+                                    |---deltajoin: Local Rearrange[tuple]{chararray}(false) - scope-688
+                                        |   |
+                                        |   Project[chararray][0] - scope-689
+                                        |
+                                        |---jfklax_orig: New For Each(false,false)[bag] - scope-681
+                                            |   |
+                                            |   Project[chararray][0] - scope-677
+                                            |   |
+                                            |   Project[int][3] - scope-679
+                                            |
+                                            |---jfklax_orig: Filter[bag] - scope-661
+                                                |   |
+                                                |   And[boolean] - scope-676
+                                                |   |
+                                                |   |---Or[boolean] - scope-668
+                                                |   |   |
+                                                |   |   |---Equal To[boolean] - scope-664
+                                                |   |   |   |
+                                                |   |   |   |---Project[int][1] - scope-662
+                                                |   |   |   |
+                                                |   |   |   |---Constant(12892) - scope-663
+                                                |   |   |
+                                                |   |   |---Equal To[boolean] - scope-667
+                                                |   |       |
+                                                |   |       |---Project[int][1] - scope-665
+                                                |   |       |
+                                                |   |       |---Constant(12478) - scope-666
+                                                |   |
+                                                |   |---Or[boolean] - scope-675
+                                                |       |
+                                                |       |---Equal To[boolean] - scope-671
+                                                |       |   |
+                                                |       |   |---Project[int][2] - scope-669
+                                                |       |   |
+                                                |       |   |---Constant(12892) - scope-670
+                                                |       |
+                                                |       |---Equal To[boolean] - scope-674
+                                                |           |
+                                                |           |---Project[int][2] - scope-672
+                                                |           |
+                                                |           |---Constant(12478) - scope-673
+                                                |
+                                                |---flights: New For Each(false,false,false,false)[bag] - scope-660
+                                                    |   |
+                                                    |   Cast[chararray] - scope-649
+                                                    |   |
+                                                    |   |---Project[bytearray][0] - scope-648
+                                                    |   |
+                                                    |   Cast[int] - scope-652
+                                                    |   |
+                                                    |   |---Project[bytearray][1] - scope-651
+                                                    |   |
+                                                    |   Cast[int] - scope-655
+                                                    |   |
+                                                    |   |---Project[bytearray][2] - scope-654
+                                                    |   |
+                                                    |   Cast[int] - scope-658
+                                                    |   |
+                                                    |   |---Project[bytearray][3] - scope-657
+                                                    |
+                                                    |---flights: Load(/data/flights.csv:PigStorage(',')) - scope-647
+
+2019-04-11 20:13:59,493 [main] INFO  org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.MRCompiler - File concatenation threshold: 100 optimistic? false
+2019-04-11 20:13:59,503 [main] INFO  org.apache.pig.backend.hadoop.executionengine.util.CombinerOptimizerUtil - Choosing to move algebraic foreach to combiner
+2019-04-11 20:13:59,509 [main] INFO  org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.SecondaryKeyOptimizerMR - Using Secondary Key Optimization for MapReduce node scope-722
+2019-04-11 20:13:59,510 [main] INFO  org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.MRCompiler$LastInputStreamingOptimizer - Rewrite: POPackage->POForEach to POPackage(JoinPackager)
+2019-04-11 20:13:59,511 [main] INFO  org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.MultiQueryOptimizer - MR plan size before optimization: 5
+2019-04-11 20:13:59,511 [main] INFO  org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.MultiQueryOptimizer - MR plan size after optimization: 5
+#--------------------------------------------------
+# Map Reduce Plan                                  
+#--------------------------------------------------
+MapReduce node scope-715
+Map Plan
+Union[tuple] - scope-716
+|
+|---deltajoin: Local Rearrange[tuple]{chararray}(false) - scope-686
+|   |   |
+|   |   Project[chararray][0] - scope-687
+|   |
+|   |---delta: New For Each(false)[bag] - scope-646
+|       |   |
+|       |   Project[chararray][1] - scope-644
+|       |
+|       |---delta: Filter[bag] - scope-640
+|           |   |
+|           |   Equal To[boolean] - scope-643
+|           |   |
+|           |   |---Project[chararray][0] - scope-641
+|           |   |
+|           |   |---Constant(DL) - scope-642
+|           |
+|           |---airplanes: New For Each(false,false)[bag] - scope-639
+|               |   |
+|               |   Cast[chararray] - scope-634
+|               |   |
+|               |   |---Project[bytearray][0] - scope-633
+|               |   |
+|               |   Cast[chararray] - scope-637
+|               |   |
+|               |   |---Project[bytearray][1] - scope-636
+|               |
+|               |---airplanes: Load(/data/airplanes.csv:PigStorage(',')) - scope-632
+|
+|---deltajoin: Local Rearrange[tuple]{chararray}(false) - scope-688
+    |   |
+    |   Project[chararray][0] - scope-689
+    |
+    |---jfklax_orig: New For Each(false,false)[bag] - scope-681
+        |   |
+        |   Project[chararray][0] - scope-677
+        |   |
+        |   Project[int][3] - scope-679
+        |
+        |---jfklax_orig: Filter[bag] - scope-661
+            |   |
+            |   And[boolean] - scope-676
+            |   |
+            |   |---Or[boolean] - scope-668
+            |   |   |
+            |   |   |---Equal To[boolean] - scope-664
+            |   |   |   |
+            |   |   |   |---Project[int][1] - scope-662
+            |   |   |   |
+            |   |   |   |---Constant(12892) - scope-663
+            |   |   |
+            |   |   |---Equal To[boolean] - scope-667
+            |   |       |
+            |   |       |---Project[int][1] - scope-665
+            |   |       |
+            |   |       |---Constant(12478) - scope-666
+            |   |
+            |   |---Or[boolean] - scope-675
+            |       |
+            |       |---Equal To[boolean] - scope-671
+            |       |   |
+            |       |   |---Project[int][2] - scope-669
+            |       |   |
+            |       |   |---Constant(12892) - scope-670
+            |       |
+            |       |---Equal To[boolean] - scope-674
+            |           |
+            |           |---Project[int][2] - scope-672
+            |           |
+            |           |---Constant(12478) - scope-673
+            |
+            |---flights: New For Each(false,false,false,false)[bag] - scope-660
+                |   |
+                |   Cast[chararray] - scope-649
+                |   |
+                |   |---Project[bytearray][0] - scope-648
+                |   |
+                |   Cast[int] - scope-652
+                |   |
+                |   |---Project[bytearray][1] - scope-651
+                |   |
+                |   Cast[int] - scope-655
+                |   |
+                |   |---Project[bytearray][2] - scope-654
+                |   |
+                |   Cast[int] - scope-658
+                |   |
+                |   |---Project[bytearray][3] - scope-657
+                |
+                |---flights: Load(/data/flights.csv:PigStorage(',')) - scope-647--------
+Reduce Plan
+Store(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1999856904:org.apache.pig.impl.io.InterStorage) - scope-717
+|
+|---jfklax: New For Each(false,false)[bag] - scope-697
+    |   |
+    |   Project[chararray][0] - scope-693
+    |   |
+    |   Project[int][2] - scope-695
+    |
+    |---deltajoin: Package(JoinPackager(true,true))[tuple]{chararray} - scope-685--------
+Global sort: false
+----------------
+
+MapReduce node scope-719
+Map Plan
+jfklax_group: Local Rearrange[tuple]{chararray}(false) - scope-762
+|   |
+|   Project[chararray][0] - scope-764
+|
+|---airplane_dist: New For Each(false,false)[bag] - scope-750
+    |   |
+    |   Project[chararray][0] - scope-751
+    |   |
+    |   POUserFunc(org.apache.pig.builtin.AlgebraicMathBase$Initial)[tuple] - scope-752
+    |   |
+    |   |---Project[bag][1] - scope-753
+    |       |
+    |       |---Project[bag][1] - scope-754
+    |
+    |---Pre Combiner Local Rearrange[tuple]{Unknown} - scope-765
+        |
+        |---Load(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1999856904:org.apache.pig.impl.io.InterStorage) - scope-718--------
+Combine Plan
+jfklax_group: Local Rearrange[tuple]{chararray}(false) - scope-766
+|   |
+|   Project[chararray][0] - scope-768
+|
+|---airplane_dist: New For Each(false,false)[bag] - scope-755
+    |   |
+    |   Project[chararray][0] - scope-756
+    |   |
+    |   POUserFunc(org.apache.pig.builtin.LongSum$Intermediate)[tuple] - scope-757
+    |   |
+    |   |---Project[bag][1] - scope-758
+    |
+    |---jfklax_group: Package(CombinerPackager)[tuple]{chararray} - scope-761--------
+Reduce Plan
+Store(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1383416107:org.apache.pig.impl.io.InterStorage) - scope-720
+|
+|---airplane_dist: New For Each(false,false)[bag] - scope-708
+    |   |
+    |   Project[chararray][0] - scope-702
+    |   |
+    |   POUserFunc(org.apache.pig.builtin.LongSum$Final)[long] - scope-706
+    |   |
+    |   |---Project[bag][1] - scope-759
+    |
+    |---jfklax_group: Package(CombinerPackager)[tuple]{chararray} - scope-699--------
+Global sort: false
+----------------
+
+MapReduce node scope-722
+Map Plan
+airplane_dist_ordered: Local Rearrange[tuple]{tuple}(false) - scope-727
+|   |
+|   Constant(all) - scope-726
+|
+|---New For Each(false,false)[tuple] - scope-725
+    |   |
+    |   Project[int][1] - scope-723
+    |   |
+    |   Project[chararray][0] - scope-724
+    |
+    |---Load(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1383416107:org.apache.pig.impl.builtin.RandomSampleLoader('org.apache.pig.impl.io.InterStorage','100')) - scope-721--------
+Reduce Plan
+Store(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp191630372:org.apache.pig.impl.io.InterStorage) - scope-737
+|
+|---New For Each(false)[tuple] - scope-736
+    |   |
+    |   POUserFunc(org.apache.pig.impl.builtin.FindQuantiles)[tuple] - scope-735
+    |   |
+    |   |---Project[tuple][*] - scope-734
+    |
+    |---New For Each(false,false)[tuple] - scope-733
+        |   |
+        |   Constant(-1) - scope-732
+        |   |
+        |   Project[bag][1] - scope-729
+        |
+        |---Package(Packager)[tuple]{chararray} - scope-728--------
+Global sort: false
+Secondary sort: true
+----------------
+
+MapReduce node scope-739
+Map Plan
+airplane_dist_ordered: Local Rearrange[tuple]{tuple}(false) - scope-740
+|   |
+|   Project[int][1] - scope-709
+|   |
+|   Project[chararray][0] - scope-710
+|
+|---Load(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1383416107:org.apache.pig.impl.io.InterStorage) - scope-738--------
+Combine Plan
+Local Rearrange[tuple]{tuple}(false) - scope-745
+|   |
+|   Project[int][1] - scope-709
+|   |
+|   Project[chararray][0] - scope-710
+|
+|---Limit - scope-744
+    |
+    |---New For Each(true)[tuple] - scope-743
+        |   |
+        |   Project[bag][1] - scope-742
+        |
+        |---Package(LitePackager)[tuple]{tuple} - scope-741--------
+Reduce Plan
+limit_data: Store(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1501000226:org.apache.pig.impl.io.InterStorage) - scope-712
+|
+|---Limit - scope-749
+    |
+    |---New For Each(true)[tuple] - scope-748
+        |   |
+        |   Project[bag][1] - scope-747
+        |
+        |---Package(LitePackager)[tuple]{tuple} - scope-746--------
+Global sort: true
+Quantile file: hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp191630372
+----------------
+
+MapReduce node scope-769
+Map Plan
+airplane_dist_ordered: Local Rearrange[tuple]{tuple}(false) - scope-771
+|   |
+|   Project[int][1] - scope-772
+|   |
+|   Project[chararray][0] - scope-773
+|
+|---Load(hdfs://cs421-hd1.cs.mcgill.ca:9000/tmp/temp-984403343/tmp1501000226:org.apache.pig.impl.io.InterStorage) - scope-770--------
+Reduce Plan
+limit_data: Store(fakefile:org.apache.pig.builtin.PigStorage) - scope-779
+|
+|---Limit - scope-778
+    |
+    |---New For Each(true)[bag] - scope-777
+        |   |
+        |   Project[tuple][1] - scope-776
+        |
+        |---Package(LitePackager)[tuple]{tuple} - scope-775--------
+Global sort: false
+----------------
+
