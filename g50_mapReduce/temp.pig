@@ -17,60 +17,17 @@ jfklax = FOREACH deltajoin GENERATE delta::tail_number AS tail_number:CHARARRAY,
 
 --group and sum
 jfklax_group = GROUP jfklax BY tail_number;
-airplane_dist = FOREACH jfklax_group GENERATE SUM(jfklax.distance) AS totoaldistance:INT, jfklax.tail_number;
-
-
-
-
-
-
-ori = FOREACH jfklax GENERATE jfklaxjoinOrigin::tail_number as tail_number:chararray, jfklaxjoinOrigin::distance as or_distance:int, 
-	jfklaxjoinOrigin::origin_airport_id ,
-	jfklaxjoinOrigin::dest_airport_id;
-dest = FOREACH jfklax GENERATE jfklaxjoinDest::tail_number as tail_number:chararray, 
-	jfklaxjoinDest::distance as dest_distance:int, 
-	jfklaxjoinDest::origin_airport_id ,
-	jfklaxjoinDest::dest_airport_id;
-
-ori_group = GROUP ori BY tail_number;
-dest_group = GROUP dest BY tail_number;
-
-flight_dist = JOIN ori_group BY group, dest_group BY group;
-
-
-
-
-ori10 = limit ori 10;
-dest10 = limit dest 10;
-
-dump ori10;
-dump dest10; why is this empty?
-
-
---cut the fat ie project now to save on time
-skinny = FOREACH jfklax GENERATE jfklaxjoinOrigin::tail_number as tail_number:chararray, jfklaxjoinOrigin::distance as or_distance:int, 
-	jfklaxjoinDest::distance as des_distance:int;
-
---combing origin and destination distances
-adds = FOREACH skinny GENERATE tail_number, (or_distance + des_distance) as distance;
-
---group and sum
-jfklax_group = GROUP jfklax BY tail_number;
-airplane_dist = FOREACH jfklax_group GENERATE group AS tail_number, SUM(distance) AS totoaldistance:INT;
+airplane_dist = FOREACH jfklax_group GENERATE group AS tail_number, SUM(jfklax.distance) AS totoaldistance:INT;
 
 --order by totoaldistance and then tail number, limit to 10
 airplane_dist_ordered = ORDER airplane_dist BY totoaldistance DESC, tail_number DESC;
 limit_data = LIMIT airplane_dist_ordered 10;
 
---project only tail number and distance
-airplaneDist = FOREACH limit_data GENERATE group as tail_number:CHARARRAY, totoaldistance AS totoaldistance:INT;
-
-
 --dump the results
-dump airplaneDist;
+dump limit_data;
 
 --store the data
-STORE airplaneDist INTO 'q7' USING PigStorage (',') ; 
+STORE limit_data INTO 'q7' USING PigStorage (',') ; 
 
 
 
